@@ -12,28 +12,29 @@
 - [ ] Create Ollama connection handler (backend proxy)
 - [x] Set up image generation pipeline (Fooocus/Pollinations)
 
-## Phase 2: Mobile App - Core UI
+## Phase 2: Mobile App - Core UI (Floating Orb Redesign)
 
-- [x] Customize home screen (Chat tab)
+- [x] Customize home screen with floating orb
+- [x] Create floating orb component with drag support
+- [x] Implement expand/collapse animations
+- [x] Rebuild chat interface inside floating panel
 - [x] Create message bubble components (user & Oracle)
 - [x] Implement message input field with send button
-- [x] Create tab bar navigation (Chat, Creations, Settings)
-- [x] Build Creations gallery screen (grid view)
-- [x] Build Settings screen with family member selector
-- [x] Implement family member modal selector
-- [x] Create image viewer modal (full-screen, pinch-zoom)
+- [x] Add Gallery quick action button
+- [x] Add Settings quick action button
+- [x] Create tab bar navigation (kept for future use)
 - [ ] Add theme switching (Classic, Cyber-Glitch, Electric Shimmer)
-- [ ] Implement Orb mode toggle (minimalist view)
 
 ## Phase 3: Mobile App - Chat Functionality
 
 - [x] Connect to backend API via tRPC
 - [x] Implement message sending (text)
-- [ ] Implement message receiving & real-time updates
+- [x] Implement message receiving from backend
 - [x] Add loading indicator while Oracle is thinking
 - [x] Display message history on app load
 - [x] Implement message scrolling & pagination
 - [x] Add error handling & retry logic
+- [ ] Implement real-time updates (WebSocket)
 - [ ] Implement offline message queueing
 
 ## Phase 4: Mobile App - Voice & Vision Input
