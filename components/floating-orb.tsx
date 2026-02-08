@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useColors } from "@/hooks/use-colors";
 import { cn } from "@/lib/utils";
+import { VoiceInputButton } from "./voice-input-button";
 
 interface FloatingOrbProps {
   onSendMessage?: (message: string) => void;
@@ -62,10 +63,14 @@ export function FloatingOrb({
   };
 
   const handleSendMessage = () => {
-    if (inputText.trim()) {
-      onSendMessage?.(inputText);
+    if (inputText.trim() && onSendMessage) {
+      onSendMessage(inputText);
       setInputText("");
     }
+  };
+
+  const handleVoiceTranscribed = (text: string) => {
+    setInputText(text);
   };
 
   const orbSize = 80;
@@ -215,6 +220,10 @@ export function FloatingOrb({
                   color: colors.foreground,
                 }}
                 editable={!isLoading}
+              />
+              <VoiceInputButton
+                onTranscribed={handleVoiceTranscribed}
+                isLoading={isLoading}
               />
               <Pressable
                 onPress={handleSendMessage}

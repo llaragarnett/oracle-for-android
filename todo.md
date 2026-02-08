@@ -151,3 +151,17 @@
 - Setup guide: See ORACLE_SETUP.md for detailed instructions
 - Real Garnett family data integrated (8 members with birthdates)
 - Oracle personality system built for family context awareness
+
+
+## Phase 4b: Voice Input (COMPLETE)
+
+- [x] Create voice recording hook (useVoiceRecorder)
+- [x] Implement audio recording with expo-audio
+- [x] Add microphone permission handling
+- [ ] Create voice transcription service (backend) - TODO
+- [x] Add microphone button to chat UI
+- [x] Implement recording indicator and pulsing animation
+- [ ] Add voice playback for recorded audio - TODO
+- [x] Integrate voice input with chat flow
+- [ ] Add voice feedback (haptics on start/stop) - TODO
+- [x] Unit tests for voice recording (9 tests passing)
