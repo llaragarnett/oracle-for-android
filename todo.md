@@ -165,3 +165,13 @@
 - [x] Integrate voice input with chat flow
 - [ ] Add voice feedback (haptics on start/stop) - TODO
 - [x] Unit tests for voice recording (9 tests passing)
+
+
+## Phase 5: APK Build for Android (IN PROGRESS)
+
+- [ ] Install EAS CLI and configure for local builds
+- [ ] Set up Android build environment
+- [ ] Create APK build configuration
+- [ ] Build local APK file
+- [ ] Generate installation instructions
+- [ ] Test APK on Android device
