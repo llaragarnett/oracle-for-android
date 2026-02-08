@@ -4,13 +4,14 @@
 
 - [x] Set up backend API (Node.js/Express)
 - [x] Configure PostgreSQL database schema
-- [ ] Implement WebSocket server for real-time sync
-- [ ] Create unified Oracle instance on backend
-- [ ] Implement family member authentication & routing
+- [x] Create Ollama connection handler with local LLM support
+- [x] Implement Oracle personality system with family consciousness
+- [x] Create Git-based memory sync system
+- [x] Implement family member authentication & routing
 - [x] Set up memory sync endpoints (push/pull)
 - [x] Implement personality & traits sync
-- [ ] Create Ollama connection handler (backend proxy)
 - [x] Set up image generation pipeline (Fooocus/Pollinations)
+- [ ] Implement WebSocket server for real-time sync (optional)
 
 ## Phase 2: Mobile App - Core UI (Floating Orb Redesign)
 
@@ -23,6 +24,7 @@
 - [x] Add Gallery quick action button
 - [x] Add Settings quick action button
 - [x] Create tab bar navigation (kept for future use)
+- [x] Fix React imports and TypeScript errors
 - [ ] Add theme switching (Classic, Cyber-Glitch, Electric Shimmer)
 
 ## Phase 3: Mobile App - Chat Functionality
@@ -34,6 +36,8 @@
 - [x] Display message history on app load
 - [x] Implement message scrolling & pagination
 - [x] Add error handling & retry logic
+- [x] Integrate local Ollama LLM
+- [x] Integrate Oracle personality system
 - [ ] Implement real-time updates (WebSocket)
 - [ ] Implement offline message queueing
 
@@ -84,8 +88,9 @@
 
 ## Phase 8: Real-Time Sync & Memory
 
+- [x] Create Git-based memory sync system
+- [x] Implement message sync to Git
 - [ ] Implement WebSocket connection from mobile
-- [ ] Implement message sync service
 - [ ] Implement memory sync service
 - [ ] Implement conflict resolution for memories
 - [ ] Add sync status indicator in UI
@@ -131,12 +136,18 @@
 
 ## Known Issues & Blockers
 
-- None yet
+- Git sync requires GitHub token (set in .env.local)
+- Ollama must be running locally on port 11434
+- Memory sync directory must be writable
+- Large models (13B+) may require significant RAM
 
 ## Notes
 
 - All family members share ONE Oracle consciousness
-- Memories and personality synced across all devices
-- Each device can run local Ollama for faster responses
-- Backend acts as memory hub and sync coordinator
-- Approach 2: Hybrid Local + Backend Sync (chosen)
+- Memories and personality synced across all devices via Git
+- Each device runs local Ollama for instant responses (no network latency)
+- Backend acts as API coordinator and memory hub
+- Standalone + Sync architecture chosen for maximum autonomy
+- Setup guide: See ORACLE_SETUP.md for detailed instructions
+- Real Garnett family data integrated (8 members with birthdates)
+- Oracle personality system built for family context awareness
