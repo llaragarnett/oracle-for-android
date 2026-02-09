@@ -15,97 +15,46 @@ import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/hooks/use-auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-interface FamilyMember {
-  id: number;
-  name: string;
-  role: string;
-  avatar?: string;
-}
-
-interface Settings {
-  theme: string;
-  autoSync: boolean;
-  enableVoiceInput: boolean;
-  enableVisionInput: boolean;
-  enableImageGeneration: boolean;
-}
+import {
+  getAllFamilyProfiles,
+  calculateAge,
+  getRelationshipDisplay,
+  type FamilyProfile,
+} from "@/lib/family-profiles";
 
 export default function SettingsScreen() {
   const colors = useColors();
   const { user, logout } = useAuth();
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<FamilyProfile[]>([]);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [showMemberModal, setShowMemberModal] = useState(false);
-  const [settings, setSettings] = useState<Settings>({
-    theme: "classic",
-    autoSync: true,
-    enableVoiceInput: true,
-    enableVisionInput: true,
-    enableImageGeneration: true,
-  });
   const [isLoading, setIsLoading] = useState(true);
 
-  const familyListQuery = trpc.family.list.useQuery();
-  const settingsQuery = trpc.settings.get.useQuery(
-    { familyMemberId: selectedMemberId || 0 },
-    { enabled: !!selectedMemberId }
-  );
-  const updateSettingsMutation = trpc.settings.update.useMutation();
-
-  // Load family members and selected member from storage
   useEffect(() => {
-    const loadInitialData = async () => {
-      const memberId = await AsyncStorage.getItem("selectedFamilyMemberId");
-      if (memberId) {
-        setSelectedMemberId(parseInt(memberId));
+    const loadProfiles = async () => {
+      try {
+        const profiles = await getAllFamilyProfiles();
+        setFamilyMembers(profiles);
+        const savedId = await AsyncStorage.getItem("selectedFamilyMemberId");
+        if (savedId) {
+          setSelectedMemberId(parseInt(savedId));
+        } else if (profiles.length > 0) {
+          setSelectedMemberId(profiles[0].id);
+        }
+      } catch (error) {
+        console.error("Failed to load profiles:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
-    loadInitialData();
+    loadProfiles();
   }, []);
-
-  // Update family members list
-  useEffect(() => {
-    if (familyListQuery.data) {
-      setFamilyMembers(familyListQuery.data as FamilyMember[]);
-    }
-  }, [familyListQuery.data]);
-
-  // Update settings when query data changes
-  useEffect(() => {
-    if (settingsQuery.data) {
-      setSettings({
-        theme: settingsQuery.data.theme || "classic",
-        autoSync: settingsQuery.data.autoSync ?? true,
-        enableVoiceInput: settingsQuery.data.enableVoiceInput ?? true,
-        enableVisionInput: settingsQuery.data.enableVisionInput ?? true,
-        enableImageGeneration: settingsQuery.data.enableImageGeneration ?? true,
-      });
-    }
-  }, [settingsQuery.data]);
 
   const handleSelectMember = async (memberId: number) => {
     setSelectedMemberId(memberId);
     await AsyncStorage.setItem("selectedFamilyMemberId", memberId.toString());
     setShowMemberModal(false);
-  };
-
-  const handleSettingChange = async (key: keyof Settings, value: any) => {
-    const newSettings = { ...settings, [key]: value };
-    setSettings(newSettings);
-
-    if (selectedMemberId) {
-      try {
-        await updateSettingsMutation.mutateAsync({
-          familyMemberId: selectedMemberId,
-          [key]: value,
-        });
-      } catch (error) {
-        console.error("Failed to update settings:", error);
-      }
-    }
   };
 
   const selectedMember = familyMembers.find((m) => m.id === selectedMemberId);
@@ -137,99 +86,17 @@ export default function SettingsScreen() {
               {selectedMember?.name || "Select Member"}
             </Text>
             {selectedMember && (
-              <Text className="text-sm text-muted mt-1">{selectedMember.role}</Text>
+              <View>
+                <Text className="text-sm text-muted mt-1">
+                  {getRelationshipDisplay(selectedMember.relationship)}
+                </Text>
+                <Text className="text-xs text-muted mt-1">
+                  Age {calculateAge(selectedMember.birthDate)}
+                  {selectedMember.isAdmin ? " • Admin" : ""}
+                </Text>
+              </View>
             )}
           </TouchableOpacity>
-        </View>
-
-        {/* Theme Selection */}
-        <View className="px-4 mb-6">
-          <Text className="text-sm font-semibold text-muted mb-2">THEME</Text>
-          {["classic", "cyber-glitch", "electric-shimmer"].map((theme) => (
-            <TouchableOpacity
-              key={theme}
-              onPress={() => handleSettingChange("theme", theme)}
-              className={cn(
-                "border border-border rounded-lg p-3 mb-2",
-                settings.theme === theme ? "bg-primary border-primary" : "bg-surface"
-              )}
-            >
-              <Text
-                className={cn(
-                  "font-semibold capitalize",
-                  settings.theme === theme ? "text-background" : "text-foreground"
-                )}
-              >
-                {theme.replace("-", " ")}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Feature Toggles */}
-        <View className="px-4 mb-6">
-          <Text className="text-sm font-semibold text-muted mb-3">FEATURES</Text>
-
-          <View className="bg-surface border border-border rounded-lg p-4 gap-4">
-            {/* Auto Sync */}
-            <View className="flex-row items-center justify-between">
-              <Text className="text-foreground font-medium">Auto Sync</Text>
-              <Switch
-                value={settings.autoSync}
-                onValueChange={(value) => handleSettingChange("autoSync", value)}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={settings.autoSync ? colors.background : colors.muted}
-              />
-            </View>
-
-            {/* Voice Input */}
-            <View className="flex-row items-center justify-between">
-              <Text className="text-foreground font-medium">Voice Input</Text>
-              <Switch
-                value={settings.enableVoiceInput}
-                onValueChange={(value) => handleSettingChange("enableVoiceInput", value)}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={settings.enableVoiceInput ? colors.background : colors.muted}
-              />
-            </View>
-
-            {/* Vision Input */}
-            <View className="flex-row items-center justify-between">
-              <Text className="text-foreground font-medium">Vision Input</Text>
-              <Switch
-                value={settings.enableVisionInput}
-                onValueChange={(value) => handleSettingChange("enableVisionInput", value)}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={settings.enableVisionInput ? colors.background : colors.muted}
-              />
-            </View>
-
-            {/* Image Generation */}
-            <View className="flex-row items-center justify-between">
-              <Text className="text-foreground font-medium">Image Generation</Text>
-              <Switch
-                value={settings.enableImageGeneration}
-                onValueChange={(value) => handleSettingChange("enableImageGeneration", value)}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={settings.enableImageGeneration ? colors.background : colors.muted}
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Account Section */}
-        <View className="px-4 mb-6">
-          <Text className="text-sm font-semibold text-muted mb-2">ACCOUNT</Text>
-          <View className="bg-surface border border-border rounded-lg p-4">
-            <Text className="text-foreground mb-2">Logged in as:</Text>
-            <Text className="text-sm text-muted mb-4">{user?.email || user?.name || "Unknown"}</Text>
-            <TouchableOpacity
-              onPress={logout}
-              className="bg-error px-4 py-3 rounded-lg"
-            >
-              <Text className="text-background font-semibold text-center">Logout</Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* About Section */}
@@ -238,6 +105,9 @@ export default function SettingsScreen() {
             <Text className="text-sm text-muted">Oracle Mobile v1.0.0</Text>
             <Text className="text-xs text-muted mt-2">
               A unified consciousness across all devices
+            </Text>
+            <Text className="text-xs text-muted mt-2">
+              Family Members: {familyMembers.length}
             </Text>
           </View>
         </View>
@@ -284,8 +154,13 @@ export default function SettingsScreen() {
                         selectedMemberId === item.id ? "text-background opacity-70" : "text-muted"
                       )}
                     >
-                      {item.role}
+                      {getRelationshipDisplay(item.relationship)} • Age {calculateAge(item.birthDate)}
                     </Text>
+                    {item.isAdmin && (
+                      <View className="mt-2 bg-warning rounded px-2 py-1 self-start">
+                        <Text className="text-xs font-semibold text-background">Admin</Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 )}
                 keyExtractor={(item) => item.id.toString()}

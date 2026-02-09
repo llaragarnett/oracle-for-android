@@ -49,10 +49,29 @@ export default function HomeScreen() {
         content: text,
       });
 
-      const responseText =
-        typeof response.oracleResponse === "string"
-          ? response.oracleResponse
-          : JSON.stringify(response.oracleResponse);
+      // Extract text from response, handling arrays and objects
+      let responseText = "";
+      if (typeof response.oracleResponse === "string") {
+        responseText = response.oracleResponse;
+      } else if (Array.isArray(response.oracleResponse)) {
+        // If array of content objects, extract text from first text item
+        const textContent = response.oracleResponse.find(
+          (item: any) => item.type === "text" || typeof item === "string"
+        );
+        responseText =
+          typeof textContent === "string"
+            ? textContent
+            : (textContent as any)?.text || (textContent as any)?.content || "";
+      } else if (typeof response.oracleResponse === "object" && response.oracleResponse) {
+        // If object, try to extract text field
+        const obj = response.oracleResponse as any;
+        responseText = obj.text || obj.content || obj.message || "";
+      }
+      
+      // Fallback if still empty
+      if (!responseText) {
+        responseText = "I received your message but couldn't formulate a response.";
+      }
 
       const oracleMessage = {
         id: (Date.now() + 1).toString(),
