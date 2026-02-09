@@ -22,7 +22,7 @@ interface OraclePanelProps {
   messages: Array<{ role: "user" | "assistant"; content: string; image?: string }>;
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
-  onScreenCapture?: () => Promise<string>;
+  onScreenCapture?: () => Promise<string | null>;
 }
 
 export function OraclePanel({

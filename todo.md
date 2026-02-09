@@ -276,7 +276,19 @@
 
 ### UI Label Fixes
 - [x] Change "Index" tab label to "Phase" in tab bar
-- [ ] Fix [object Object] error in chat UI
+- [x] Fix [object Object] error in chat UI
 - [x] Review all UI labels for clarity
 - [ ] Test on various screen sizes
+
+## CRITICAL RESTORATION NEEDED
+
+- [ ] Restore full settings screen with theme selection, font slider, profile management
+- [ ] Verify oracle-panel is being rendered in home screen with draggable modes
+- [ ] Verify eyeball (screen vision) button is functional and working
+- [ ] Verify orb mode works with long press to drag
+- [ ] Verify fullscreen mode works and displays full conversation
+- [ ] Test all three modes: panel, orb, fullscreen transitions
+- [ ] Verify profile creation and password protection
+- [ ] Verify profile selection in settings
+- [ ] Verify admin override functionality (Kelly & Mom)
 
