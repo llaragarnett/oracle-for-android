@@ -222,3 +222,60 @@
 - [x] Troubleshooting guide
 
 ## PRODUCTION STATUS: COMPLETE & READY FOR DEPLOYMENT
+
+
+## Phase 6: UI Redesign & New Features (IN PROGRESS)
+
+### Floating Panel UI Redesign
+- [ ] Rebuild floating panel as elevated translucent overlay
+- [ ] Implement draggable panel (pan gesture)
+- [ ] Add collapse-to-orb animation
+- [ ] Implement orb mode (small bubble icon)
+- [ ] Add long-press to drag orb
+- [ ] Add single-tap to expand orb back to panel
+- [ ] Add fullscreen button in panel corner
+- [ ] Implement fullscreen mode (full screen conversation)
+- [ ] Test panel/orb/fullscreen transitions
+
+### Screen Vision Capability
+- [ ] Add eyeball button to panel mode
+- [ ] Implement screenshot capture (React Native)
+- [ ] Send screenshot to Oracle for analysis
+- [ ] Display screenshot in chat context
+- [ ] Enable screen vision in orb mode
+- [ ] Enable screen vision in fullscreen mode
+- [ ] Test vision analysis with various content
+
+### Family Profile System
+- [ ] Create profile data structure with real family data
+- [ ] Add password protection for profiles
+- [ ] Implement "Add Profile" button in settings
+- [ ] Build profile creation flow (name, age, relationship)
+- [ ] Store profiles securely (encrypted)
+- [ ] Implement profile selection screen
+- [ ] Add administrator override (Kelly & Mom)
+- [ ] Test profile switching and permissions
+
+### Model & Configuration Updates
+- [ ] Switch from dolphin-llama3 to huihui_ai/llama3.2-abliterate:3b
+- [ ] Update .env with new model
+- [ ] Update PRODUCTION_GUIDE.md with new model
+- [ ] Update LLM system prompt for abliterated model
+- [ ] Update all documentation references
+- [ ] Test new model responses
+
+### Testing & Quality
+- [ ] Write tests for floating panel UI
+- [ ] Write tests for screen vision
+- [ ] Write tests for profile system
+- [ ] Write tests for model integration
+- [ ] Integration tests for full flow
+- [ ] UI/UX testing on Android device
+- [ ] Performance testing (battery, memory)
+- [ ] Bug fixes and polish
+
+### UI Label Fixes
+- [ ] Change "Index" to "Phase" throughout app
+- [ ] Review all UI labels for clarity
+- [ ] Test on various screen sizes
+

@@ -321,7 +321,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
 
   // Try local Ollama first
   const ollamaUrl = process.env.OLLAMA_URL || "http://localhost:11434";
-  const ollamaModel = process.env.OLLAMA_MODEL || "dolphin-llama3";
+  const ollamaModel = process.env.OLLAMA_MODEL || "huihui_ai/llama3.2-abliterate:3b";
 
   try {
     return await invokeOllama(ollamaUrl, ollamaModel, normalizedMessages);
