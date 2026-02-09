@@ -275,7 +275,8 @@
 - [ ] Bug fixes and polish
 
 ### UI Label Fixes
-- [ ] Change "Index" to "Phase" throughout app
-- [ ] Review all UI labels for clarity
+- [x] Change "Index" tab label to "Phase" in tab bar
+- [ ] Fix [object Object] error in chat UI
+- [x] Review all UI labels for clarity
 - [ ] Test on various screen sizes
 
