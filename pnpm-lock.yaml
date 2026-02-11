@@ -63,7 +63,7 @@ importers:
         specifier: ~18.0.12
         version: 18.0.12(expo@54.0.29)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))
       expo-crypto:
-        specifier: ^15.0.8
+        specifier: ~15.0.0
         version: 15.0.8(expo@54.0.29)
       expo-font:
         specifier: ~14.0.10
