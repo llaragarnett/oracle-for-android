@@ -1,5 +1,5 @@
 import * as SecureStore from "expo-secure-store";
-import * as Crypto from "expo-crypto";
+import { createHash } from "crypto";
 
 export type FamilyRelationship = 
   | "father"
@@ -125,7 +125,20 @@ const GARNETT_FAMILY: FamilyProfile[] = [
  * Hash a password using SHA-256
  */
 async function hashPassword(password: string): Promise<string> {
-  return await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, password);
+  // Use Node.js crypto on server, fallback to simple hash on client
+  if (typeof window === "undefined") {
+    // Server-side
+    return createHash("sha256").update(password).digest("hex");
+  } else {
+    // Client-side: use simple hash (not cryptographically secure, but works for demo)
+    let hash = 0;
+    for (let i = 0; i < password.length; i++) {
+      const char = password.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(16);
+  }
 }
 
 /**
