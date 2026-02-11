@@ -2,11 +2,12 @@ import { useState, useCallback } from "react";
 import * as FileSystem from "expo-file-system/legacy";
 import { trpc } from "@/lib/trpc";
 
-// Screen vision result type not needed for hook
-
 /**
  * Hook for capturing screen and sending to Oracle for analysis
  * Allows Oracle to "see" what's on the user's screen
+ * 
+ * Note: Screen capture requires platform-specific implementation
+ * For now using placeholder that will be replaced with native implementation
  */
 export function useScreenVision(familyMemberId: number = 1) {
   const [screenshot, setScreenshot] = useState<string | null>(null);
@@ -20,8 +21,8 @@ export function useScreenVision(familyMemberId: number = 1) {
       setIsLoading(true);
       setError(null);
 
-      // For now, return a placeholder
-      // In production, use react-native-view-shot or similar
+      // Placeholder: In production, this will use native screenshot API
+      // For now, return a simple placeholder image
       const placeholder = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
       setScreenshot(placeholder);
 
@@ -57,7 +58,7 @@ export function useScreenVision(familyMemberId: number = 1) {
         setIsLoading(false);
       }
     },
-    [analyzeScreenMutation]
+    [analyzeScreenMutation, currentFamilyMemberId]
   );
 
   const clearScreenshot = useCallback(() => {
