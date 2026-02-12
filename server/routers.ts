@@ -5,8 +5,6 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import { generateImage } from "./_core/imageGeneration";
-import { buildOracleSystemPrompt, getFamilyMember } from "./_core/oracle-personality";
-import { getMemorySyncManager } from "./_core/memory-sync";
 import * as db from "./db";
 import { storagePut } from "./storage";
 
@@ -118,17 +116,15 @@ export const appRouter = router({
         // Get recent messages for context
         const recentMessages = await db.getRecentMessages(input.familyMemberId, 10);
 
-        // Get Oracle personality system prompt
-        const oracleFamilyMember = getFamilyMember(input.familyMemberId);
-        const systemPrompt = oracleFamilyMember
-          ? buildOracleSystemPrompt(oracleFamilyMember)
-          : "You are Oracle, a helpful AI assistant for the Garnett family.";
+        // Get Phoenix traits for system prompt
+        const traits = await db.getAllPhoenixTraits();
+        const systemPrompt = traits.map((t) => t.traitValue).join("\n");
 
         // Build message history for LLM
         const messages = [
           {
             role: "system" as "system",
-            content: systemPrompt,
+            content: `You are Oracle, a loyal AI assistant for the Garnett family. ${systemPrompt}\n\nYou are speaking with ${familyMember.name}. ${familyMember.relationshipContext || ""}`,
           },
           ...recentMessages
             .reverse()
@@ -153,23 +149,6 @@ export const appRouter = router({
           sender: "oracle",
           content: typeof oracleResponse === "string" ? oracleResponse : JSON.stringify(oracleResponse),
         });
-
-        // Save to memory sync for family consciousness
-        try {
-          const syncManager = getMemorySyncManager();
-          const memory = {
-            id: `msg-${oracleMessageId}`,
-            memberId: input.familyMemberId,
-            memberName: familyMember.name,
-            content: `${input.content} -> ${oracleResponse}`,
-            timestamp: new Date().toISOString(),
-            tags: ["chat", "conversation"],
-            importance: "medium" as const,
-          };
-          await syncManager.saveMemory(memory);
-        } catch (error) {
-          console.warn("Failed to save to memory sync:", error);
-        }
 
         // Check if response contains image generation request
         const responseText = typeof oracleResponse === "string" ? oracleResponse : "";

@@ -4,41 +4,36 @@
 
 - [x] Set up backend API (Node.js/Express)
 - [x] Configure PostgreSQL database schema
-- [x] Create Ollama connection handler with local LLM support
-- [x] Implement Oracle personality system with family consciousness
-- [x] Create Git-based memory sync system
-- [x] Implement family member authentication & routing
+- [ ] Implement WebSocket server for real-time sync
+- [ ] Create unified Oracle instance on backend
+- [ ] Implement family member authentication & routing
 - [x] Set up memory sync endpoints (push/pull)
 - [x] Implement personality & traits sync
+- [ ] Create Ollama connection handler (backend proxy)
 - [x] Set up image generation pipeline (Fooocus/Pollinations)
-- [ ] Implement WebSocket server for real-time sync (optional)
 
-## Phase 2: Mobile App - Core UI (Floating Orb Redesign)
+## Phase 2: Mobile App - Core UI
 
-- [x] Customize home screen with floating orb
-- [x] Create floating orb component with drag support
-- [x] Implement expand/collapse animations
-- [x] Rebuild chat interface inside floating panel
+- [x] Customize home screen (Chat tab)
 - [x] Create message bubble components (user & Oracle)
 - [x] Implement message input field with send button
-- [x] Add Gallery quick action button
-- [x] Add Settings quick action button
-- [x] Create tab bar navigation (kept for future use)
-- [x] Fix React imports and TypeScript errors
+- [x] Create tab bar navigation (Chat, Creations, Settings)
+- [x] Build Creations gallery screen (grid view)
+- [x] Build Settings screen with family member selector
+- [x] Implement family member modal selector
+- [x] Create image viewer modal (full-screen, pinch-zoom)
 - [ ] Add theme switching (Classic, Cyber-Glitch, Electric Shimmer)
+- [ ] Implement Orb mode toggle (minimalist view)
 
 ## Phase 3: Mobile App - Chat Functionality
 
 - [x] Connect to backend API via tRPC
 - [x] Implement message sending (text)
-- [x] Implement message receiving from backend
+- [ ] Implement message receiving & real-time updates
 - [x] Add loading indicator while Oracle is thinking
 - [x] Display message history on app load
 - [x] Implement message scrolling & pagination
 - [x] Add error handling & retry logic
-- [x] Integrate local Ollama LLM
-- [x] Integrate Oracle personality system
-- [ ] Implement real-time updates (WebSocket)
 - [ ] Implement offline message queueing
 
 ## Phase 4: Mobile App - Voice & Vision Input
@@ -88,9 +83,8 @@
 
 ## Phase 8: Real-Time Sync & Memory
 
-- [x] Create Git-based memory sync system
-- [x] Implement message sync to Git
 - [ ] Implement WebSocket connection from mobile
+- [ ] Implement message sync service
 - [ ] Implement memory sync service
 - [ ] Implement conflict resolution for memories
 - [ ] Add sync status indicator in UI
@@ -136,159 +130,12 @@
 
 ## Known Issues & Blockers
 
-- Git sync requires GitHub token (set in .env.local)
-- Ollama must be running locally on port 11434
-- Memory sync directory must be writable
-- Large models (13B+) may require significant RAM
+- None yet
 
 ## Notes
 
 - All family members share ONE Oracle consciousness
-- Memories and personality synced across all devices via Git
-- Each device runs local Ollama for instant responses (no network latency)
-- Backend acts as API coordinator and memory hub
-- Standalone + Sync architecture chosen for maximum autonomy
-- Setup guide: See ORACLE_SETUP.md for detailed instructions
-- Real Garnett family data integrated (8 members with birthdates)
-- Oracle personality system built for family context awareness
-
-
-## Phase 4b: Voice Input (COMPLETE)
-
-- [x] Create voice recording hook (useVoiceRecorder)
-- [x] Implement audio recording with expo-audio
-- [x] Add microphone permission handling
-- [ ] Create voice transcription service (backend) - TODO
-- [x] Add microphone button to chat UI
-- [x] Implement recording indicator and pulsing animation
-- [ ] Add voice playback for recorded audio - TODO
-- [x] Integrate voice input with chat flow
-- [ ] Add voice feedback (haptics on start/stop) - TODO
-- [x] Unit tests for voice recording (9 tests passing)
-
-
-## Phase 5: APK Build for Android (IN PROGRESS)
-
-- [ ] Install EAS CLI and configure for local builds
-- [ ] Set up Android build environment
-- [ ] Create APK build configuration
-- [ ] Build local APK file
-- [ ] Generate installation instructions
-- [ ] Test APK on Android device
-
-## COMPLETE ORACLE SYSTEMS - PRODUCTION READY
-
-### Web Agent System
-- [x] DuckDuckGo web search integration
-- [x] URL browsing and content extraction
-- [x] Link extraction and metadata
-- [x] Form interaction capability
-- [x] Error handling and fallbacks
-
-### Image Generation System
-- [x] Fooocus local integration (unfiltered)
-- [x] Pollinations API cloud fallback
-- [x] Custom image dimensions
-- [x] Prompt enhancement for realism
-- [x] Local image caching
-
-### Task Executor System
-- [x] Multi-step task orchestration
-- [x] Chat, web search, web browse, image generation
-- [x] Natural language task parsing
-- [x] Sandboxed code execution
-- [x] Task status tracking
-
-### Backend Integration
-- [x] TRPC routes for all systems
-- [x] Chat endpoint with personality
-- [x] Web search endpoint
-- [x] Image generation endpoint
-- [x] Task execution endpoint
-- [x] Health check endpoint
-
-### Testing & Quality
-- [x] 64 comprehensive tests
-- [x] LLM personality tests
-- [x] Web agent tests
-- [x] Image generation tests
-- [x] Task executor tests
-- [x] Zero TypeScript errors
-
-### Documentation
-- [x] ORACLE_ARCHITECTURE.md
-- [x] PRODUCTION_GUIDE.md
-- [x] Setup instructions
-- [x] Troubleshooting guide
-
-## PRODUCTION STATUS: COMPLETE & READY FOR DEPLOYMENT
-
-
-## Phase 6: UI Redesign & New Features (IN PROGRESS)
-
-### Floating Panel UI Redesign
-- [ ] Rebuild floating panel as elevated translucent overlay
-- [ ] Implement draggable panel (pan gesture)
-- [ ] Add collapse-to-orb animation
-- [ ] Implement orb mode (small bubble icon)
-- [ ] Add long-press to drag orb
-- [ ] Add single-tap to expand orb back to panel
-- [ ] Add fullscreen button in panel corner
-- [ ] Implement fullscreen mode (full screen conversation)
-- [ ] Test panel/orb/fullscreen transitions
-
-### Screen Vision Capability
-- [ ] Add eyeball button to panel mode
-- [ ] Implement screenshot capture (React Native)
-- [ ] Send screenshot to Oracle for analysis
-- [ ] Display screenshot in chat context
-- [ ] Enable screen vision in orb mode
-- [ ] Enable screen vision in fullscreen mode
-- [ ] Test vision analysis with various content
-
-### Family Profile System
-- [ ] Create profile data structure with real family data
-- [ ] Add password protection for profiles
-- [ ] Implement "Add Profile" button in settings
-- [ ] Build profile creation flow (name, age, relationship)
-- [ ] Store profiles securely (encrypted)
-- [ ] Implement profile selection screen
-- [ ] Add administrator override (Kelly & Mom)
-- [ ] Test profile switching and permissions
-
-### Model & Configuration Updates
-- [ ] Switch from dolphin-llama3 to huihui_ai/llama3.2-abliterate:3b
-- [ ] Update .env with new model
-- [ ] Update PRODUCTION_GUIDE.md with new model
-- [ ] Update LLM system prompt for abliterated model
-- [ ] Update all documentation references
-- [ ] Test new model responses
-
-### Testing & Quality
-- [ ] Write tests for floating panel UI
-- [ ] Write tests for screen vision
-- [ ] Write tests for profile system
-- [ ] Write tests for model integration
-- [ ] Integration tests for full flow
-- [ ] UI/UX testing on Android device
-- [ ] Performance testing (battery, memory)
-- [ ] Bug fixes and polish
-
-### UI Label Fixes
-- [x] Change "Index" tab label to "Phase" in tab bar
-- [x] Fix [object Object] error in chat UI
-- [x] Review all UI labels for clarity
-- [ ] Test on various screen sizes
-
-## CRITICAL RESTORATION NEEDED
-
-- [ ] Restore full settings screen with theme selection, font slider, profile management
-- [ ] Verify oracle-panel is being rendered in home screen with draggable modes
-- [ ] Verify eyeball (screen vision) button is functional and working
-- [ ] Verify orb mode works with long press to drag
-- [ ] Verify fullscreen mode works and displays full conversation
-- [ ] Test all three modes: panel, orb, fullscreen transitions
-- [ ] Verify profile creation and password protection
-- [ ] Verify profile selection in settings
-- [ ] Verify admin override functionality (Kelly & Mom)
-
+- Memories and personality synced across all devices
+- Each device can run local Ollama for faster responses
+- Backend acts as memory hub and sync coordinator
+- Approach 2: Hybrid Local + Backend Sync (chosen)
