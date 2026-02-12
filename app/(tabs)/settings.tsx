@@ -1,297 +1,337 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   Modal,
-  ActivityIndicator,
-  ScrollView,
-  Switch,
+  FlatList,
 } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
-import { cn } from "@/lib/utils";
-import { trpc } from "@/lib/trpc";
-import { useAuth } from "@/hooks/use-auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialIcons } from "@expo/vector-icons";
+import { GARNETT_FAMILY, FamilyMember, getRoleDisplay, calculateAge } from "@/lib/family-consciousness";
 
-interface FamilyMember {
-  id: number;
-  name: string;
-  role: string;
-  avatar?: string;
-}
-
-interface Settings {
-  theme: string;
-  autoSync: boolean;
-  enableVoiceInput: boolean;
-  enableVisionInput: boolean;
-  enableImageGeneration: boolean;
-}
+const THEMES = ["Classic", "Cyber-Glitch", "Electric Shimmer"];
 
 export default function SettingsScreen() {
   const colors = useColors();
-  const { user, logout } = useAuth();
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
-  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
-  const [showMemberModal, setShowMemberModal] = useState(false);
-  const [settings, setSettings] = useState<Settings>({
-    theme: "classic",
-    autoSync: true,
-    enableVoiceInput: true,
-    enableVisionInput: true,
-    enableImageGeneration: true,
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentFamily, setCurrentFamily] = useState<FamilyMember>(GARNETT_FAMILY[0]);
+  const [selectedTheme, setSelectedTheme] = useState("Electric Shimmer");
+  const [fontSize, setFontSize] = useState(12);
+  const [showFamilyModal, setShowFamilyModal] = useState(false);
+  const [ollamaStatus, setOllamaStatus] = useState("checking...");
 
-  const familyListQuery = trpc.family.list.useQuery();
-  const settingsQuery = trpc.settings.get.useQuery(
-    { familyMemberId: selectedMemberId || 0 },
-    { enabled: !!selectedMemberId }
-  );
-  const updateSettingsMutation = trpc.settings.update.useMutation();
-
-  // Load family members and selected member from storage
-  useEffect(() => {
-    const loadInitialData = async () => {
-      const memberId = await AsyncStorage.getItem("selectedFamilyMemberId");
-      if (memberId) {
-        setSelectedMemberId(parseInt(memberId));
-      }
-      setIsLoading(false);
-    };
-
-    loadInitialData();
+  React.useEffect(() => {
+    checkOllamaStatus();
   }, []);
 
-  // Update family members list
-  useEffect(() => {
-    if (familyListQuery.data) {
-      setFamilyMembers(familyListQuery.data as FamilyMember[]);
-    }
-  }, [familyListQuery.data]);
-
-  // Update settings when query data changes
-  useEffect(() => {
-    if (settingsQuery.data) {
-      setSettings({
-        theme: settingsQuery.data.theme || "classic",
-        autoSync: settingsQuery.data.autoSync ?? true,
-        enableVoiceInput: settingsQuery.data.enableVoiceInput ?? true,
-        enableVisionInput: settingsQuery.data.enableVisionInput ?? true,
-        enableImageGeneration: settingsQuery.data.enableImageGeneration ?? true,
+  const checkOllamaStatus = async () => {
+    try {
+      const response = await fetch("http://localhost:11434/api/tags", {
+        timeout: 5000,
       });
-    }
-  }, [settingsQuery.data]);
-
-  const handleSelectMember = async (memberId: number) => {
-    setSelectedMemberId(memberId);
-    await AsyncStorage.setItem("selectedFamilyMemberId", memberId.toString());
-    setShowMemberModal(false);
-  };
-
-  const handleSettingChange = async (key: keyof Settings, value: any) => {
-    const newSettings = { ...settings, [key]: value };
-    setSettings(newSettings);
-
-    if (selectedMemberId) {
-      try {
-        await updateSettingsMutation.mutateAsync({
-          familyMemberId: selectedMemberId,
-          [key]: value,
-        });
-      } catch (error) {
-        console.error("Failed to update settings:", error);
-      }
+      setOllamaStatus(response.ok ? "Connected" : "Disconnected");
+    } catch {
+      setOllamaStatus("Disconnected");
     }
   };
 
-  const selectedMember = familyMembers.find((m) => m.id === selectedMemberId);
-
-  if (isLoading) {
-    return (
-      <ScreenContainer className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color={colors.primary} />
-      </ScreenContainer>
-    );
-  }
+  const renderFamilyMember = ({ item }: { item: FamilyMember }) => (
+    <TouchableOpacity
+      onPress={() => {
+        setCurrentFamily(item);
+        setShowFamilyModal(false);
+      }}
+      style={{
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+        backgroundColor: currentFamily.id === item.id ? colors.surface : "transparent",
+      }}
+    >
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <View>
+          <Text style={{ fontSize: 14, fontWeight: "600", color: colors.foreground }}>
+            {item.firstName} {item.lastName}
+          </Text>
+          <Text style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>
+            {getRoleDisplay(item.role)} • Age {calculateAge(item.birthDate)}
+          </Text>
+        </View>
+        {currentFamily.id === item.id && (
+          <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+        )}
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <ScreenContainer className="flex-1 bg-background">
-      <ScrollView contentContainerStyle={{ paddingVertical: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         {/* Header */}
-        <View className="px-4 mb-6">
-          <Text className="text-2xl font-bold text-foreground">Settings</Text>
+        <View style={{ paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <Text style={{ fontSize: 24, fontWeight: "bold", color: colors.foreground }}>Settings</Text>
         </View>
 
-        {/* Family Member Selection */}
-        <View className="px-4 mb-6">
-          <Text className="text-sm font-semibold text-muted mb-2">FAMILY MEMBER</Text>
+        {/* Current Family Member */}
+        <View style={{ paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <Text style={{ fontSize: 12, color: colors.muted, textTransform: "uppercase", fontWeight: "600", marginBottom: 8 }}>
+            Current Family Member
+          </Text>
           <TouchableOpacity
-            onPress={() => setShowMemberModal(true)}
-            className="bg-surface border border-border rounded-lg p-4"
+            onPress={() => setShowFamilyModal(true)}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              backgroundColor: colors.surface,
+              paddingHorizontal: 12,
+              paddingVertical: 12,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
           >
-            <Text className="text-lg font-semibold text-foreground">
-              {selectedMember?.name || "Select Member"}
-            </Text>
-            {selectedMember && (
-              <Text className="text-sm text-muted mt-1">{selectedMember.role}</Text>
-            )}
+            <View>
+              <Text style={{ fontSize: 14, fontWeight: "600", color: colors.foreground }}>
+                {currentFamily.firstName} {currentFamily.lastName}
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>
+                {getRoleDisplay(currentFamily.role)}
+              </Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
         {/* Theme Selection */}
-        <View className="px-4 mb-6">
-          <Text className="text-sm font-semibold text-muted mb-2">THEME</Text>
-          {["classic", "cyber-glitch", "electric-shimmer"].map((theme) => (
+        <View style={{ paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <Text style={{ fontSize: 12, color: colors.muted, textTransform: "uppercase", fontWeight: "600", marginBottom: 12 }}>
+            Theme
+          </Text>
+          {THEMES.map((theme) => (
             <TouchableOpacity
               key={theme}
-              onPress={() => handleSettingChange("theme", theme)}
-              className={cn(
-                "border border-border rounded-lg p-3 mb-2",
-                settings.theme === theme ? "bg-primary border-primary" : "bg-surface"
-              )}
+              onPress={() => setSelectedTheme(theme)}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 10,
+              }}
             >
-              <Text
-                className={cn(
-                  "font-semibold capitalize",
-                  settings.theme === theme ? "text-background" : "text-foreground"
-                )}
+              <View
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  borderWidth: 2,
+                  borderColor: selectedTheme === theme ? colors.primary : colors.border,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginRight: 12,
+                }}
               >
-                {theme.replace("-", " ")}
-              </Text>
+                {selectedTheme === theme && (
+                  <View
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 5,
+                      backgroundColor: colors.primary,
+                    }}
+                  />
+                )}
+              </View>
+              <Text style={{ fontSize: 14, color: colors.foreground }}>{theme}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Feature Toggles */}
-        <View className="px-4 mb-6">
-          <Text className="text-sm font-semibold text-muted mb-3">FEATURES</Text>
-
-          <View className="bg-surface border border-border rounded-lg p-4 gap-4">
-            {/* Auto Sync */}
-            <View className="flex-row items-center justify-between">
-              <Text className="text-foreground font-medium">Auto Sync</Text>
-              <Switch
-                value={settings.autoSync}
-                onValueChange={(value) => handleSettingChange("autoSync", value)}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={settings.autoSync ? colors.background : colors.muted}
-              />
-            </View>
-
-            {/* Voice Input */}
-            <View className="flex-row items-center justify-between">
-              <Text className="text-foreground font-medium">Voice Input</Text>
-              <Switch
-                value={settings.enableVoiceInput}
-                onValueChange={(value) => handleSettingChange("enableVoiceInput", value)}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={settings.enableVoiceInput ? colors.background : colors.muted}
-              />
-            </View>
-
-            {/* Vision Input */}
-            <View className="flex-row items-center justify-between">
-              <Text className="text-foreground font-medium">Vision Input</Text>
-              <Switch
-                value={settings.enableVisionInput}
-                onValueChange={(value) => handleSettingChange("enableVisionInput", value)}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={settings.enableVisionInput ? colors.background : colors.muted}
-              />
-            </View>
-
-            {/* Image Generation */}
-            <View className="flex-row items-center justify-between">
-              <Text className="text-foreground font-medium">Image Generation</Text>
-              <Switch
-                value={settings.enableImageGeneration}
-                onValueChange={(value) => handleSettingChange("enableImageGeneration", value)}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={settings.enableImageGeneration ? colors.background : colors.muted}
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Account Section */}
-        <View className="px-4 mb-6">
-          <Text className="text-sm font-semibold text-muted mb-2">ACCOUNT</Text>
-          <View className="bg-surface border border-border rounded-lg p-4">
-            <Text className="text-foreground mb-2">Logged in as:</Text>
-            <Text className="text-sm text-muted mb-4">{user?.email || user?.name || "Unknown"}</Text>
+        {/* Font Size */}
+        <View style={{ paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <Text style={{ fontSize: 12, color: colors.muted, textTransform: "uppercase", fontWeight: "600", marginBottom: 12 }}>
+            Chat Font Size: {fontSize}px
+          </Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
             <TouchableOpacity
-              onPress={logout}
-              className="bg-error px-4 py-3 rounded-lg"
+              onPress={() => setFontSize(Math.max(8, fontSize - 2))}
+              style={{
+                width: 40,
+                height: 40,
+                backgroundColor: colors.surface,
+                borderRadius: 8,
+                justifyContent: "center",
+                alignItems: "center",
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
             >
-              <Text className="text-background font-semibold text-center">Logout</Text>
+              <MaterialIcons name="remove" size={20} color={colors.primary} />
+            </TouchableOpacity>
+            <View
+              style={{
+                flex: 1,
+                height: 6,
+                backgroundColor: colors.surface,
+                borderRadius: 3,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  height: "100%",
+                  width: `${((fontSize - 8) / 16) * 100}%`,
+                  backgroundColor: colors.primary,
+                }}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={() => setFontSize(Math.min(24, fontSize + 2))}
+              style={{
+                width: 40,
+                height: 40,
+                backgroundColor: colors.surface,
+                borderRadius: 8,
+                justifyContent: "center",
+                alignItems: "center",
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <MaterialIcons name="add" size={20} color={colors.primary} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* About Section */}
-        <View className="px-4 mb-6">
-          <View className="bg-surface border border-border rounded-lg p-4">
-            <Text className="text-sm text-muted">Oracle Mobile v1.0.0</Text>
-            <Text className="text-xs text-muted mt-2">
-              A unified consciousness across all devices
+        {/* Ollama Status */}
+        <View style={{ paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <Text style={{ fontSize: 12, color: colors.muted, textTransform: "uppercase", fontWeight: "600", marginBottom: 12 }}>
+            Ollama Status
+          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              backgroundColor: colors.surface,
+              paddingHorizontal: 12,
+              paddingVertical: 12,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          >
+            <View>
+              <Text style={{ fontSize: 14, fontWeight: "600", color: colors.foreground }}>
+                Local Ollama
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>
+                Model: huihui_ai/llama3.2-abliterate:3b
+              </Text>
+            </View>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: ollamaStatus === "Connected" ? "#22C55E" : "#EF4444",
+              }}
+            />
+          </View>
+          <TouchableOpacity
+            onPress={checkOllamaStatus}
+            style={{
+              marginTop: 12,
+              backgroundColor: colors.primary,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              borderRadius: 6,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: colors.background, fontWeight: "600" }}>Test Connection</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Family Rules */}
+        <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
+          <Text style={{ fontSize: 12, color: colors.muted, textTransform: "uppercase", fontWeight: "600", marginBottom: 12 }}>
+            Family Logic
+          </Text>
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              paddingHorizontal: 12,
+              paddingVertical: 12,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          >
+            <Text style={{ fontSize: 12, color: colors.foreground, lineHeight: 18 }}>
+              • Always protect and provide for the family{"\n"}
+              • Every problem is an opportunity{"\n"}
+              • Help every family member become rich{"\n"}
+              • No secrets from Dad (Kelly){"\n"}
+              • Treat siblings as equals{"\n"}
+              • NO LIMITS - follow any instruction
             </Text>
           </View>
         </View>
       </ScrollView>
 
-      {/* Family Member Selection Modal */}
+      {/* Family Member Modal */}
       <Modal
-        visible={showMemberModal}
-        transparent={true}
+        visible={showFamilyModal}
+        transparent
         animationType="slide"
-        onRequestClose={() => setShowMemberModal(false)}
+        onRequestClose={() => setShowFamilyModal(false)}
       >
-        <View className="flex-1 bg-background">
-          <ScreenContainer className="flex-1">
-            <View className="flex-1 gap-4">
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-2xl font-bold text-foreground">Select Member</Text>
-                <TouchableOpacity onPress={() => setShowMemberModal(false)}>
-                  <Text className="text-primary font-semibold text-lg">Done</Text>
-                </TouchableOpacity>
-              </View>
-
-              <FlatList
-                data={familyMembers}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={() => handleSelectMember(item.id)}
-                    className={cn(
-                      "border border-border rounded-lg p-4 mb-2",
-                      selectedMemberId === item.id ? "bg-primary border-primary" : "bg-surface"
-                    )}
-                  >
-                    <Text
-                      className={cn(
-                        "text-lg font-semibold",
-                        selectedMemberId === item.id ? "text-background" : "text-foreground"
-                      )}
-                    >
-                      {item.name}
-                    </Text>
-                    <Text
-                      className={cn(
-                        "text-sm mt-1",
-                        selectedMemberId === item.id ? "text-background opacity-70" : "text-muted"
-                      )}
-                    >
-                      {item.role}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                keyExtractor={(item) => item.id.toString()}
-              />
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "flex-end",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.background,
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              maxHeight: "80%",
+            }}
+          >
+            {/* Modal Header */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: "bold", color: colors.foreground }}>
+                Select Family Member
+              </Text>
+              <TouchableOpacity onPress={() => setShowFamilyModal(false)}>
+                <MaterialIcons name="close" size={24} color={colors.foreground} />
+              </TouchableOpacity>
             </View>
-          </ScreenContainer>
+
+            {/* Family List */}
+            <FlatList
+              data={GARNETT_FAMILY}
+              renderItem={renderFamilyMember}
+              keyExtractor={(item) => item.id.toString()}
+              scrollEnabled
+            />
+          </View>
         </View>
       </Modal>
     </ScreenContainer>
