@@ -13,6 +13,7 @@ import { useColors } from "@/hooks/use-colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import { getTaskExecutor } from "@/lib/task-executor";
 import { GARNETT_FAMILY } from "@/lib/family-consciousness";
+import { MatrixBackground } from "@/components/matrix-background";
 
 interface Message {
   id: string;
@@ -429,6 +430,7 @@ export default function HomeScreen() {
 
   return (
     <ScreenContainer className="flex-1 bg-background">
+      <MatrixBackground />
       {uiMode === "orb" && renderOrbMode()}
       {uiMode === "panel" && renderPanelMode()}
       {uiMode === "fullscreen" && renderFullscreenMode()}
