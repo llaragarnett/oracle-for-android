@@ -1,94 +1,67 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Animated, Dimensions, StyleSheet } from 'react-native';
+import { Text } from 'react-native';
 
 // Elder Futhark Runes - The authentic ancient Norse alphabet
 const ELDER_FUTHARK = [
-  'ᚠ', // Fehu - Wealth, cattle
-  'ᚢ', // Uruz - Strength, wild ox
-  'ᚦ', // Thurisaz - Giant, thorn
-  'ᚨ', // Ansuz - God, ancestor
-  'ᚱ', // Raido - Journey, wagon
-  'ᚲ', // Kenaz - Torch, knowledge
-  'ᚷ', // Gebo - Gift, generosity
-  'ᚹ', // Wunjo - Joy, bliss
-  'ᚺ', // Hagalaz - Hail, disruption
-  'ᚾ', // Nauthiz - Need, necessity
-  'ᛁ', // Isa - Ice, standstill
-  'ᛃ', // Jera - Year, harvest
-  'ᛇ', // Eihwaz - Yew tree, defense
-  'ᛈ', // Perthro - Dice cup, secrets
-  'ᛉ', // Algiz - Elk, protection
-  'ᛊ', // Sowilo - Sun, wholeness
-  'ᛏ', // Tiwaz - Warrior, sky god
-  'ᛒ', // Berkano - Birch, growth
-  'ᛖ', // Ehwaz - Horse, movement
-  'ᛗ', // Mannaz - Man, self
-  'ᛚ', // Laguz - Water, flow
-  'ᛜ', // Ingwaz - Ing, fertility
-  'ᛟ', // Othala - Homeland, inheritance
-  'ᛞ', // Dagaz - Day, breakthrough
+  'ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ',
+  'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ',
+  'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ',
 ];
 
-interface RuneStream {
+interface RuneColumn {
   id: string;
   x: number;
-  y: Animated.Value;
-  opacity: Animated.Value;
   runes: string[];
   speed: number;
-  delay: number;
+  isBright: boolean;
+  offset: Animated.Value;
 }
 
 export function OdinMatrixBackground() {
   const { width, height } = Dimensions.get('window');
-  const [streams, setStreams] = useState<RuneStream[]>([]);
+  const [columns, setColumns] = useState<RuneColumn[]>([]);
   const animationsRef = useRef<Animated.CompositeAnimation[]>([]);
+  const columnCountRef = useRef(0);
 
   useEffect(() => {
-    // Create multiple rune streams
-    const streamCount = Math.ceil(width / 50);
-    const newStreams: RuneStream[] = [];
+    // Create many columns with smaller characters
+    const columnCount = Math.ceil(width / 20); // More columns, closer together
+    columnCountRef.current = columnCount;
+    const newColumns: RuneColumn[] = [];
 
-    for (let i = 0; i < streamCount; i++) {
-      const runeCount = Math.ceil(height / 35) + 10;
+    for (let i = 0; i < columnCount; i++) {
+      const runeCount = Math.ceil(height / 16) + 20; // More runes per column
       const runes = Array.from({ length: runeCount }, () =>
         ELDER_FUTHARK[Math.floor(Math.random() * ELDER_FUTHARK.length)]
       );
 
-      const y = new Animated.Value(-height);
-      const opacity = new Animated.Value(0);
-      const speed = 3000 + Math.random() * 4000;
-      const delay = Math.random() * 2000;
+      const offset = new Animated.Value(0);
+      const isBright = Math.random() < 0.15; // 15% chance to be bright
+      const speed = isBright ? 4000 + Math.random() * 2000 : 6000 + Math.random() * 4000;
 
-      newStreams.push({
-        id: `stream-${i}`,
-        x: (i * width) / streamCount,
-        y,
-        opacity,
+      newColumns.push({
+        id: `col-${i}`,
+        x: i * 20,
         runes,
         speed,
-        delay,
+        isBright,
+        offset,
       });
+    }
 
-      // Create smooth, continuous animation
+    setColumns(newColumns);
+
+    // Start animations for each column
+    newColumns.forEach((column, index) => {
+      const startDelay = Math.random() * 3000; // Random start delay
+
       const animation = Animated.loop(
         Animated.sequence([
-          Animated.delay(delay),
-          Animated.parallel([
-            Animated.timing(opacity, {
-              toValue: 0.8,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-            Animated.timing(y, {
-              toValue: height + 100,
-              duration: speed,
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.timing(opacity, {
-            toValue: 0,
-            duration: 500,
+          Animated.delay(startDelay),
+          Animated.timing(column.offset, {
+            toValue: height + 200,
+            duration: column.speed,
             useNativeDriver: true,
           }),
         ]),
@@ -97,9 +70,7 @@ export function OdinMatrixBackground() {
 
       animationsRef.current.push(animation);
       animation.start();
-    }
-
-    setStreams(newStreams);
+    });
 
     return () => {
       animationsRef.current.forEach((anim) => anim.stop());
@@ -108,33 +79,40 @@ export function OdinMatrixBackground() {
 
   return (
     <View style={styles.container}>
-      {/* Deep black background with subtle glow */}
-      <View style={styles.background} />
-
-      {/* Rune streams */}
-      {streams.map((stream) => (
+      {/* Rune columns - continuous falling */}
+      {columns.map((column) => (
         <Animated.View
-          key={stream.id}
+          key={column.id}
           style={[
-            styles.stream,
+            styles.column,
             {
-              left: stream.x,
-              transform: [{ translateY: stream.y }],
-              opacity: stream.opacity,
+              left: column.x,
+              transform: [{ translateY: column.offset }],
             },
           ]}
         >
-          {stream.runes.map((rune, idx) => (
-            <View key={idx} style={styles.runeContainer}>
-              <View style={styles.runeWrapper}>
-                <Text style={styles.rune}>{rune}</Text>
-              </View>
+          {column.runes.map((rune, idx) => (
+            <View
+              key={idx}
+              style={[
+                styles.runeCell,
+                column.isBright && styles.brightRune,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.rune,
+                  column.isBright && styles.brightRuneText,
+                ]}
+              >
+                {rune}
+              </Text>
             </View>
           ))}
         </Animated.View>
       ))}
 
-      {/* Glow effect overlay */}
+      {/* Subtle glow overlay */}
       <View style={styles.glowOverlay} />
     </View>
   );
@@ -150,37 +128,38 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#000000',
   },
-  background: {
+  column: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#000000',
-  },
-  stream: {
-    position: 'absolute',
-    width: 50,
+    width: 20,
     alignItems: 'center',
   },
-  runeContainer: {
-    height: 35,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  runeWrapper: {
+  runeCell: {
+    height: 16,
+    width: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
   rune: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#00ff00',
+    opacity: 0.25, // Faded by default
+    textShadowColor: 'rgba(0, 255, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
+    fontFamily: 'monospace',
+    letterSpacing: 0,
+  },
+  brightRune: {
+    // Bright column styling
+  },
+  brightRuneText: {
+    opacity: 0.9, // Much brighter
     color: '#00ff00',
     textShadowColor: 'rgba(0, 255, 0, 0.8)',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
-    letterSpacing: 2,
-    fontFamily: 'monospace',
+    textShadowRadius: 12,
+    fontWeight: '700',
   },
   glowOverlay: {
     position: 'absolute',
@@ -188,10 +167,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 255, 0, 0.02)',
+    backgroundColor: 'rgba(0, 255, 0, 0.01)',
     pointerEvents: 'none',
   },
 });
-
-// Import Text from react-native
-import { Text } from 'react-native';
