@@ -96,7 +96,7 @@ export default function HomeScreen() {
 
   return (
     <ScreenContainer className="flex-1 bg-black p-0">
-      <OdinMatrixBackground />
+      {/* <OdinMatrixBackground /> */}
       
       <OracleMatrixPanel
         messages={messages}
